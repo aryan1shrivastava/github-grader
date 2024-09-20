@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHubGrader: AI-Powered Profile Analyzer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400;700&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            margin: auto;
+            background: rgba(30, 30, 40, 0.9);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Orbitron', sans-serif;
+            color: #bb86fc;
+            text-shadow: 0 0 10px rgba(187, 134, 252, 0.5);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .input-group {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px 0 0 5px;
+            background: #2c2c3a;
+            color: #e0e0e0;
+            font-size: 1em;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        button {
+            flex: 0 0 auto;
+            padding: 12px 20px;
+            background: #bb86fc;
+            color: #1e1e2e;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+        button:hover {
+            background: #9d4edd;
+            box-shadow: 0 0 15px rgba(187, 134, 252, 0.5);
+        }
+        #result {
+            margin-top: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+        #result.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .hidden {
+            display: none;
+        }
+        #loading, #error {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            color: #bb86fc;
+        }
+        #ai-analysis {
+            background: rgba(40, 40, 50, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #humorous-comment {
+            font-style: italic;
+            color: #03dac6;
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(3, 218, 198, 0.1);
+            border-radius: 5px;
+            text-shadow: 0 0 5px rgba(3, 218, 198, 0.5);
+        }
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(187, 134, 252, 0.3);
+            padding-bottom: 5px;
+        }
+        .stat-label {
+            font-weight: bold;
+            color: #bb86fc;
+        }
+        .suggestions li {
+            margin-bottom: 10px;
+            color: #03dac6;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #bb86fc;
+            font-size: 0.9em;
+            text-shadow: 0 0 5px rgba(187, 134, 252, 0.5);
+        }
+        footer .heart {
+            color: #ff6b6b;
+            font-size: 1.2em;
+            animation: heartbeat 1.5s ease infinite;
+        }
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GitHubGrader</h1>
+        <h2>AI-Powered Profile Analyzer</h2>
+        <div class="input-group">
+            <input type="text" id="username" placeholder="Enter GitHub username">
+            <button onclick="analyzeProfile()">Grade Profile</button>
+        </div>
+        <div id="loading" class="hidden">Loading...</div>
+        <div id="error" class="hidden"></div>
+        <div id="result" class="hidden">
+            <div id="humorous-comment" class="pulse"></div>
+            <h2>Profile: <span id="profile-name"></span></h2>
+            <div class="stat">
+                <span class="stat-label">Public Repos:</span>
+                <span id="public-repos"></span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Followers:</span>
+                <span id="followers"></span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Rating:</span>
+                <span id="rating"></span>
+            </div>
+            <div id="ai-analysis"></div>
+        </div>
+    </div>
+
+    <footer>
+        Made with <span class="heart">❤️</span> by Aryan Shrivastava
+    </footer>
+
+    <script>
+        async function analyzeProfile() {
+            const username = document.getElementById('username').value;
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const result = document.getElementById('result');
+
+            loading.classList.remove('hidden');
+            error.classList.add('hidden');
+            result.classList.add('hidden');
+
+            try {
+                const data = await fetchGitHubProfile(username);
+                const analysis = await generateAIAnalysis(data);
+
+                document.getElementById('profile-name').textContent = data.name || username;
+                document.getElementById('public-repos').textContent = data.public_repos;
+                document.getElementById('followers').textContent = data.followers;
+                document.getElementById('rating').textContent = analysis.rating;
+                document.getElementById('humorous-comment').textContent = analysis.humorousComment;
+                document.getElementById('ai-analysis').innerHTML = analysis.detailedAnalysis;
+
+                loading.classList.add('hidden');
+                result.classList.remove('hidden');
+                result.classList.add('show');
+            } catch (err) {
+                console.error('Error in analyzeProfile:', err);
+                error.textContent = `Error: ${err.message}`;
+                error.classList.remove('hidden');
+                loading.classList.add('hidden');
+            }
+        }
+
+        async function fetchGitHubProfile(username) {
+            console.log('Fetching profile for:', username);
+            try {
+                const token = 'YOUR_PERSONAL_ACCESS_TOKEN'; // Replace with your actual token
+                const response = await fetch(`https://api.github.com/users/${username}`, {
+                    headers: {
+                        'Authorization': `token ${token}`
+                    }
+                });
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    const errorBody = await response.text();
+                    console.error('Error response body:', errorBody);
+                    throw new Error(`HTTP error! status: ${response.status}, body: ${errorBody}`);
+                }
+                const data = await response.json();
+                console.log('GitHub API response:', data);
+                return data;
+            } catch (error) {
+                console.error('Error fetching GitHub profile:', error);
+                throw new Error('Failed to fetch GitHub profile. Please check the console for more details.');
+            }
+        }
+
+        async function generateAIAnalysis(data) {
+            const repoCount = data.public_repos;
+            const followerCount = data.followers;
+            const createdAt = new Date(data.created_at);
+            const accountAge = (new Date() - createdAt) / (1000 * 60 * 60 * 24 * 365); // in years
+
+            // Simulating AI-generated content
+            const aiResponse = await simulateAIResponse(data);
+
+            let analysis = `<h3>AI Analysis</h3>`;
+            analysis += `<p>${aiResponse.intro}</p>`;
+            analysis += `<p>${aiResponse.accountAgeAnalysis}</p>`;
+            analysis += `<p>${aiResponse.repoAnalysis}</p>`;
+            analysis += `<p>${aiResponse.followerAnalysis}</p>`;
+
+            analysis += `<h4>Suggestions for Improvement:</h4><ul>`;
+            aiResponse.suggestions.forEach(suggestion => {
+                analysis += `<li>${suggestion}</li>`;
+            });
+            analysis += `</ul>`;
+
+            return {
+                detailedAnalysis: analysis,
+                rating: aiResponse.rating,
+                humorousComment: aiResponse.humorousComment
+            };
+        }
+
+        async function simulateAIResponse(data) {
+            // In a real-world scenario, this would be an API call to an AI model
+            // For this example, we'll use predefined responses and some randomization
+
+            const repoCount = data.public_repos;
+            const followerCount = data.followers;
+            const accountAge = (new Date() - new Date(data.created_at)) / (1000 * 60 * 60 * 24 * 365);
+
+            const introResponses = [
+                "Greetings, fellow code enthusiast! I've scanned the digital aura of this GitHub profile, and my circuits are buzzing with excitement!",
+                "Beep boop! My AI algorithms have crunched the numbers, and I've got some interstellar insights about this GitHub journey.",
+                "Hold onto your keyboards! I've analyzed this GitHub profile, and I'm about to drop some binary brilliance on you."
+            ];
+
+            const accountAgeAnalyses = [
+                `This account has been coding up a storm for ${accountAge.toFixed(1)} years. That's ${(accountAge * 365).toFixed(0)} days of commit-ment!`,
+                `With ${accountAge.toFixed(1)} years on GitHub, this dev has seen more version control than a time traveler's diary.`,
+                `${accountAge.toFixed(1)} years of GitHub history? That's like ${(accountAge * 52).toFixed(0)} weeks of digital evolution!`
+            ];
+
+            const repoAnalyses = [
+                `With ${repoCount} repositories, this coder is like a digital architect, building a skyline of projects.`,
+                `${repoCount} repos? That's more branches than a forest! This dev is cultivating quite the code ecosystem.`,
+                `${repoCount} repositories tell a story of innovation, each one a chapter in an epic coding saga.`
+            ];
+
+            const followerAnalyses = [
+                `${followerCount} followers are tuned into this dev's code frequency. That's quite the programming podcast!`,
+                `With ${followerCount} followers, this coder could start their own dev-centric social network.`,
+                `${followerCount} followers? This dev's pull requests must be more magnetic than a superconductor!`
+            ];
+
+            const suggestionPool = [
+                "Consider creating more public repositories to showcase your diverse skills.",
+                "Engage more with the GitHub community by contributing to popular open-source projects.",
+                "Add a blog or portfolio link to your GitHub profile to highlight your expertise.",
+                "Experiment with new programming languages to broaden your coding horizons.",
+                "Collaborate on more projects to increase your network and visibility.",
+                "Document your projects thoroughly to make them more accessible to other developers.",
+                "Participate in coding challenges or hackathons to sharpen your skills.",
+                "Create and maintain a popular open-source project to boost your GitHub presence.",
+                "Regularly update your pinned repositories to showcase your best and most recent work.",
+                "Use GitHub Actions to automate your workflow and impress visitors with your efficiency."
+            ];
+
+            const humorousComments = [
+                "Your commits are so atomic, even Schrödinger's cat is jealous!",
+                "You're pushing code faster than I can push my luck!",
+                "Your GitHub graph is greener than a vegetarian's dinner plate!",
+                "If GitHub stars were real stars, you'd be a constellation!",
+                "Your code is so clean, it makes soap feel dirty!",
+                "You've got more branches than a genealogy enthusiast!",
+                "Your pull requests are so smooth, they should come with a warning label!",
+                "You're merging conflicts better than a relationship counselor!",
+                "Your repositories are multiplying faster than rabbits in springtime!",
+                "You're committing more often than a hopeless romantic!"
+            ];
+
+            const score = repoCount + (followerCount * 2) + (accountAge * 10);
+            let rating;
+            if (score > 1000) rating = 'GitHub Superstar 🌟';
+            else if (score > 500) rating = 'Code Maestro 🎼';
+            else if (score > 100) rating = 'Rising Developer 📈';
+            else rating = 'GitHub Novice 🌱';
+
+            return {
+                intro: introResponses[Math.floor(Math.random() * introResponses.length)],
+                accountAgeAnalysis: accountAgeAnalyses[Math.floor(Math.random() * accountAgeAnalyses.length)],
+                repoAnalysis: repoAnalyses[Math.floor(Math.random() * repoAnalyses.length)],
+                followerAnalysis: followerAnalyses[Math.floor(Math.random() * followerAnalyses.length)],
+                suggestions: suggestionPool.sort(() => 0.5 - Math.random()).slice(0, 3),
+                rating: rating,
+                humorousComment: humorousComments[Math.floor(Math.random() * humorousComments.length)]
+            };
+        }
+    </script>
+</body>
+</html>
