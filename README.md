@@ -1,1 +1,1 @@
-# github-grader
+# github-grade
